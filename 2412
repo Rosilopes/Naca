@@ -1,0 +1,1610 @@
+clear all
+clc
+
+%                   UNIVERSIDADE FEDERAL DO PIAUÍ
+%                DEPARTAMENTO DE ENGENHARIA MECÂNICA
+
+
+%       APLICAÇÃO DO MÉTODO DOS PAINÉIS EM ESCOAMENTO DE PERFIS 
+%                   AERODINÂMICOS BIDIBENSIONAIS
+
+                        
+% PERFIL NACA 2412
+% 34 PAINÉIS
+% ELEMENTOS DE SINGULARIDADES UTILIZADOS: FONTES E VÓRTICES
+
+% ESTRUTURA DO CÓDIGO
+    % 1.  VARIÁVEIS DE ENTRADA 
+    % 2.  PERFIL
+    % 3.  GEOMETRIA DOS PAINÉIS
+    % 4.  DETERMINAÇÃO DOS VETORES (r_i), (r_i+1) E DOS ÂNGULOS BETAS (B)
+    % 5.  COMPONENTES DE VELOCIDADES INDUZIDAS PELAS SINGULARIDADES NO SISTEMA LOCAL
+    % 6.  COMPONENTES DE VELOCIDADES INDUZIDAS PELAS SINGULARIDADES NO SISTEMA GLOBAL
+    % 7.  CÁLCULO DA MATRIZ A PARA DETERMINAR AS SINGULARIDADES
+    % 8.  CÁLCULO DA MATRIZ b PARA DETERMINAR AS SINGULARIDADES
+    % 9.  CÁLCULO DAS SINGULARIDADES
+    % 10. VELOCIDADE TANGECIAL 
+    % 11. COEFICIENTE DE PRESSÃO
+    % 12. COEFICIENTES AERODINÂMICOS
+    % 13. GRÁFICOS
+
+%__________________________________________________________________________
+
+% 1 VARIÁVEIS DE ENTRADA
+
+% 1.1 COORDENADAS CARTESIANAS DO PERFIL (34 PAINÉIS, 35 PONTOS DE FRONTEIRA)
+P=[1.0000	-0.00
+0.9500	-0.0048
+0.9000	-0.0082
+0.8000	-0.015
+0.7000	-0.0214
+0.6000	-0.0276
+0.5000	-0.0334
+0.4000	-0.038
+0.3000	-0.0412
+0.2500	-0.0422
+0.2000	-0.0423
+0.1500	-0.041
+0.1000	-0.0375
+0.0750	-0.0346
+0.0500	-0.0301
+0.0250	-0.0227
+0.0125	-0.0165
+0.0000	0
+0.0125	0.0215
+0.0250	0.0299
+0.0500	0.0413
+0.0750	0.0496
+0.1000	0.0563
+0.1500	0.0661
+0.2000	0.0726
+0.2500	0.0767
+0.3000	0.0788
+0.4000	0.078
+0.5000	0.0724
+0.6000	0.0636
+0.7000	0.0518
+0.8000	0.0375
+0.9000	0.0208
+0.9500	0.0114
+1.0000	0.00
+];
+
+% 1.3 VELOCIDADE DO ESCOAMENTO
+V=20                        % Velocidade de corrente livre (m/s)
+
+% 1.4 ÂNGULOS DE ATAQUE (VARIAÇÃO DE -10° À 15°)
+a=-10:1:15;                         % Ângulo de ataque (graus)
+ 
+alpha1=(a(1,1)/180)*pi;             % Ângulo de ataque (radianos)  -10°
+alpha2=(a(1,2)/180)*pi;             % Ângulo de ataque (radianos)   -9°
+alpha3=(a(1,3)/180)*pi;             % Ângulo de ataque (radianos)   -8°
+alpha4=(a(1,4)/180)*pi;             % Ângulo de ataque (radianos)   -7°
+alpha5=(a(1,5)/180)*pi;             % Ângulo de ataque (radianos)   -6°
+alpha6=(a(1,6)/180)*pi;             % Ângulo de ataque (radianos)   -5°
+alpha7=(a(1,7)/180)*pi;             % Ângulo de ataque (radianos)   -4°
+alpha8=(a(1,8)/180)*pi;             % Ângulo de ataque (radianos)   -3°
+alpha9=(a(1,9)/180)*pi;             % Ângulo de ataque (radianos)   -2°
+alpha10=(a(1,10)/180)*pi;           % Ângulo de ataque (radianos)   -1°
+alpha11=(a(1,11)/180)*pi;           % Ângulo de ataque (radianos)    0°
+alpha12=(a(1,12)/180)*pi;           % Ângulo de ataque (radianos)    1°
+alpha13=(a(1,13)/180)*pi;           % Ângulo de ataque (radianos)    2°
+alpha14=(a(1,14)/180)*pi;           % Ângulo de ataque (radianos)    3°
+alpha15=(a(1,15)/180)*pi;           % Ângulo de ataque (radianos)    4°
+alpha16=(a(1,16)/180)*pi;           % Ângulo de ataque (radianos)    5°
+alpha17=(a(1,17)/180)*pi;           % Ângulo de ataque (radianos)    6°
+alpha18=(a(1,18)/180)*pi;           % Ângulo de ataque (radianos)    7°
+alpha19=(a(1,19)/180)*pi;           % Ângulo de ataque (radianos)    8°
+alpha20=(a(1,20)/180)*pi;           % Ângulo de ataque (radianos)    9°
+alpha21=(a(1,21)/180)*pi;           % Ângulo de ataque (radianos)   10°
+alpha22=(a(1,22)/180)*pi;           % Ângulo de ataque (radianos)   11°
+alpha23=(a(1,23)/180)*pi;           % Ângulo de ataque (radianos)   12°
+alpha24=(a(1,24)/180)*pi;           % Ângulo de ataque (radianos)   13°
+alpha25=(a(1,25)/180)*pi;           % Ângulo de ataque (radianos)   14°
+alpha26=(a(1,26)/180)*pi;           % Ângulo de ataque (radianos)   15°
+
+alpha=(a/180)*pi;
+
+%__________________________________________________________________________
+
+% 2 PERFIL
+
+% 2.1 COORDENADAS DOS PAINÉIS 
+X_in=P(1:18,1);      % Coordenada x do intradorso
+Y_in=P(1:18,2);      % Cooerdenada y do intradorso
+X_ex=P(18:35,1);     % Coordenada x do extradorso
+Y_ex=P(18:35,2);     % Cooerdenada y do extradorso
+
+% 2.2 DESENHO DO PERFIL 
+figure;plot(X_ex,Y_ex,'b','linewidth',2);hold on; plot(X_in,Y_in,'r','linewidth',2), grid
+title('PERFIL NACA 2412')
+axis([0 1 -.5 .5])
+xlabel('x')
+ylabel('y')
+
+%__________________________________________________________________________
+
+% 3. GEOMETRIA DOS PAINÉIS
+
+% 3.1 PONTOS DE FRONTEIRA
+X_f=P(:,1);          % Coordenada x dos Pontos de fronteiras 
+Y_f=P(:,2);          % Coordenada y dos Pontos de fronteiras
+X_i=P(1:34,1);      % Coordenada x do ponto i
+X_i1=P(2:35,1);     % Coordenada x do ponto i+1
+Y_i=P(1:34,2);      % Coordenada y do ponto i
+Y_i1=P(2:35,2);     % Coordenada y do ponto i+1
+
+% 3.2 PONTOS DE CONTROLE (Ponto médio dos painéis)
+X_c=(X_i+X_i1)./2;   %Coordenada x dos pontos de controle
+Y_c=(Y_i+Y_i1)./2;   %Coordenada y dos pontos de controle
+
+% 3.3 COMPRIMENTO DOS PAINÉIS
+L=((X_i1-X_i).^2 + (Y_i1-Y_i).^2).^.5;
+
+% 1.2 ÂNGULO THETA ENTRE OS PAINEIS E O EIXO DAS ABSCISSAS (radianos)
+X_n1=P(1:17,1);     % Coordenada xi do intradorso
+X_n2=P(2:18,1);     % Coordenada xi+1 do intradorso
+X_m1=P(18:34,1);    % Coordenada xi do extradorso
+X_m2=P(19:35,1);    % Coordenada xi+1 do exntradorso
+
+Y_n1=P(1:17,2);     % Coordenada yi do intradorso
+Y_n2=P(2:18,2);     % Coordenada yi+1 do intradorso
+Y_m1=P(18:34,2);    % Coordenada yi do extradorso
+Y_m2=P(19:35,2);    % Coordenada yi+1 do extradorso
+
+theta(1:17,1)=atan((Y_n2-Y_n1)./(X_n2-X_n1))+pi     % Ângulo entre os painéis e o eixo x (i=1 à n/2)
+theta(18:34,1)=atan((Y_m2-Y_m1)./(X_m2-X_m1))       % Ângulo entre os painéis e o eixo x (i=n/2 à n)
+%__________________________________________________________________________
+
+% 4. DETERMINAÇÃO DOS VETORES (r_i), (r_i+1) E DOS ÂNGULOS BETAS (B)
+
+% 4.1 MATRIZ DOS VETORES r_i
+r_i(:,1)=sqrt((X_i(1,1)-X_c).^2+(Y_i(1,1)-Y_c).^2);
+r_i(:,2)=sqrt((X_i(2,1)-X_c).^2+(Y_i(2,1)-Y_c).^2);
+r_i(:,3)=sqrt((X_i(3,1)-X_c).^2+(Y_i(3,1)-Y_c).^2);
+r_i(:,4)=sqrt((X_i(4,1)-X_c).^2+(Y_i(4,1)-Y_c).^2);
+r_i(:,5)=sqrt((X_i(5,1)-X_c).^2+(Y_i(5,1)-Y_c).^2);
+r_i(:,6)=sqrt((X_i(6,1)-X_c).^2+(Y_i(6,1)-Y_c).^2);
+r_i(:,7)=sqrt((X_i(7,1)-X_c).^2+(Y_i(7,1)-Y_c).^2);
+r_i(:,8)=sqrt((X_i(8,1)-X_c).^2+(Y_i(8,1)-Y_c).^2);
+r_i(:,9)=sqrt((X_i(9,1)-X_c).^2+(Y_i(9,1)-Y_c).^2);
+r_i(:,10)=sqrt((X_i(10,1)-X_c).^2+(Y_i(10,1)-Y_c).^2);
+r_i(:,11)=sqrt((X_i(11,1)-X_c).^2+(Y_i(11,1)-Y_c).^2);
+r_i(:,12)=sqrt((X_i(12,1)-X_c).^2+(Y_i(12,1)-Y_c).^2);
+r_i(:,13)=sqrt((X_i(13,1)-X_c).^2+(Y_i(13,1)-Y_c).^2);
+r_i(:,14)=sqrt((X_i(14,1)-X_c).^2+(Y_i(14,1)-Y_c).^2);
+r_i(:,15)=sqrt((X_i(15,1)-X_c).^2+(Y_i(15,1)-Y_c).^2);
+r_i(:,16)=sqrt((X_i(16,1)-X_c).^2+(Y_i(16,1)-Y_c).^2);
+r_i(:,17)=sqrt((X_i(17,1)-X_c).^2+(Y_i(17,1)-Y_c).^2);
+r_i(:,18)=sqrt((X_i(18,1)-X_c).^2+(Y_i(18,1)-Y_c).^2);
+r_i(:,19)=sqrt((X_i(19,1)-X_c).^2+(Y_i(19,1)-Y_c).^2);
+r_i(:,20)=sqrt((X_i(20,1)-X_c).^2+(Y_i(20,1)-Y_c).^2);
+r_i(:,21)=sqrt((X_i(21,1)-X_c).^2+(Y_i(21,1)-Y_c).^2);
+r_i(:,22)=sqrt((X_i(22,1)-X_c).^2+(Y_i(22,1)-Y_c).^2);
+r_i(:,23)=sqrt((X_i(23,1)-X_c).^2+(Y_i(23,1)-Y_c).^2);
+r_i(:,24)=sqrt((X_i(24,1)-X_c).^2+(Y_i(24,1)-Y_c).^2);
+r_i(:,25)=sqrt((X_i(25,1)-X_c).^2+(Y_i(25,1)-Y_c).^2);
+r_i(:,26)=sqrt((X_i(26,1)-X_c).^2+(Y_i(26,1)-Y_c).^2);
+r_i(:,27)=sqrt((X_i(27,1)-X_c).^2+(Y_i(27,1)-Y_c).^2);
+r_i(:,28)=sqrt((X_i(28,1)-X_c).^2+(Y_i(28,1)-Y_c).^2);
+r_i(:,29)=sqrt((X_i(29,1)-X_c).^2+(Y_i(29,1)-Y_c).^2);
+r_i(:,30)=sqrt((X_i(30,1)-X_c).^2+(Y_i(30,1)-Y_c).^2);
+r_i(:,31)=sqrt((X_i(31,1)-X_c).^2+(Y_i(31,1)-Y_c).^2);
+r_i(:,32)=sqrt((X_i(32,1)-X_c).^2+(Y_i(32,1)-Y_c).^2);
+r_i(:,33)=sqrt((X_i(33,1)-X_c).^2+(Y_i(33,1)-Y_c).^2);
+r_i(:,34)=sqrt((X_i(34,1)-X_c).^2+(Y_i(34,1)-Y_c).^2);
+
+% 4.2 MATRIZ DOS VETORES r_i+1
+r_i1(:,1)=sqrt((X_i1(1,1)-X_c).^2+(Y_i1(1,1)-Y_c).^2);
+r_i1(:,2)=sqrt((X_i1(2,1)-X_c).^2+(Y_i1(2,1)-Y_c).^2);
+r_i1(:,3)=sqrt((X_i1(3,1)-X_c).^2+(Y_i1(3,1)-Y_c).^2);
+r_i1(:,4)=sqrt((X_i1(4,1)-X_c).^2+(Y_i1(4,1)-Y_c).^2);
+r_i1(:,5)=sqrt((X_i1(5,1)-X_c).^2+(Y_i1(5,1)-Y_c).^2);
+r_i1(:,6)=sqrt((X_i1(6,1)-X_c).^2+(Y_i1(6,1)-Y_c).^2);
+r_i1(:,7)=sqrt((X_i1(7,1)-X_c).^2+(Y_i1(7,1)-Y_c).^2);
+r_i1(:,8)=sqrt((X_i1(8,1)-X_c).^2+(Y_i1(8,1)-Y_c).^2);
+r_i1(:,9)=sqrt((X_i1(9,1)-X_c).^2+(Y_i1(9,1)-Y_c).^2);
+r_i1(:,10)=sqrt((X_i1(10,1)-X_c).^2+(Y_i1(10,1)-Y_c).^2);
+r_i1(:,11)=sqrt((X_i1(11,1)-X_c).^2+(Y_i1(11,1)-Y_c).^2);
+r_i1(:,12)=sqrt((X_i1(12,1)-X_c).^2+(Y_i1(12,1)-Y_c).^2);
+r_i1(:,13)=sqrt((X_i1(13,1)-X_c).^2+(Y_i1(13,1)-Y_c).^2);
+r_i1(:,14)=sqrt((X_i1(14,1)-X_c).^2+(Y_i1(14,1)-Y_c).^2);
+r_i1(:,15)=sqrt((X_i1(15,1)-X_c).^2+(Y_i1(15,1)-Y_c).^2);
+r_i1(:,16)=sqrt((X_i1(16,1)-X_c).^2+(Y_i1(16,1)-Y_c).^2);
+r_i1(:,17)=sqrt((X_i1(17,1)-X_c).^2+(Y_i1(17,1)-Y_c).^2);
+r_i1(:,18)=sqrt((X_i1(18,1)-X_c).^2+(Y_i1(18,1)-Y_c).^2);
+r_i1(:,19)=sqrt((X_i1(19,1)-X_c).^2+(Y_i1(19,1)-Y_c).^2);
+r_i1(:,20)=sqrt((X_i1(20,1)-X_c).^2+(Y_i1(20,1)-Y_c).^2);
+r_i1(:,21)=sqrt((X_i1(21,1)-X_c).^2+(Y_i1(21,1)-Y_c).^2);
+r_i1(:,22)=sqrt((X_i1(22,1)-X_c).^2+(Y_i1(22,1)-Y_c).^2);
+r_i1(:,23)=sqrt((X_i1(23,1)-X_c).^2+(Y_i1(23,1)-Y_c).^2);
+r_i1(:,24)=sqrt((X_i1(24,1)-X_c).^2+(Y_i1(24,1)-Y_c).^2);
+r_i1(:,25)=sqrt((X_i1(25,1)-X_c).^2+(Y_i1(25,1)-Y_c).^2);
+r_i1(:,26)=sqrt((X_i1(26,1)-X_c).^2+(Y_i1(26,1)-Y_c).^2);
+r_i1(:,27)=sqrt((X_i1(27,1)-X_c).^2+(Y_i1(27,1)-Y_c).^2);
+r_i1(:,28)=sqrt((X_i1(28,1)-X_c).^2+(Y_i1(28,1)-Y_c).^2);
+r_i1(:,29)=sqrt((X_i1(29,1)-X_c).^2+(Y_i1(29,1)-Y_c).^2);
+r_i1(:,30)=sqrt((X_i1(30,1)-X_c).^2+(Y_i1(30,1)-Y_c).^2);
+r_i1(:,31)=sqrt((X_i1(31,1)-X_c).^2+(Y_i1(31,1)-Y_c).^2);
+r_i1(:,32)=sqrt((X_i1(32,1)-X_c).^2+(Y_i1(32,1)-Y_c).^2);
+r_i1(:,33)=sqrt((X_i1(33,1)-X_c).^2+(Y_i1(33,1)-Y_c).^2);
+r_i1(:,34)=sqrt((X_i1(34,1)-X_c).^2+(Y_i1(34,1)-Y_c).^2);
+
+% 4.3 MATRIZ DOS ÂNGULOS BETAS
+B(:,1)=acos((r_i(:,1).^2 +r_i1(:,1).^2-L(1,1).^2)./(2*r_i(:,1).*r_i1(:,1)));
+B(:,2)=acos((r_i(:,2).^2 +r_i1(:,2).^2-L(2,1).^2)./(2*r_i(:,2).*r_i1(:,2)));
+B(:,3)=acos((r_i(:,3).^2 +r_i1(:,3).^2-L(3,1).^2)./(2*r_i(:,3).*r_i1(:,3)));
+B(:,4)=acos((r_i(:,4).^2 +r_i1(:,4).^2-L(4,1).^2)./(2*r_i(:,4).*r_i1(:,4)));
+B(:,5)=acos((r_i(:,5).^2 +r_i1(:,5).^2-L(5,1).^2)./(2*r_i(:,5).*r_i1(:,5)));
+B(:,6)=acos((r_i(:,6).^2 +r_i1(:,6).^2-L(6,1).^2)./(2*r_i(:,6).*r_i1(:,6)));
+B(:,7)=acos((r_i(:,7).^2 +r_i1(:,7).^2-L(7,1).^2)./(2*r_i(:,7).*r_i1(:,7)));
+B(:,8)=acos((r_i(:,8).^2 +r_i1(:,8).^2-L(8,1).^2)./(2*r_i(:,8).*r_i1(:,8)));
+B(:,9)=acos((r_i(:,9).^2 +r_i1(:,9).^2-L(9,1).^2)./(2*r_i(:,9).*r_i1(:,9)));
+B(:,10)=acos((r_i(:,10).^2 +r_i1(:,10).^2-L(10,1).^2)./(2*r_i(:,10).*r_i1(:,10)));
+B(:,11)=acos((r_i(:,11).^2 +r_i1(:,11).^2-L(11,1).^2)./(2*r_i(:,11).*r_i1(:,11)));
+B(:,12)=acos((r_i(:,12).^2 +r_i1(:,12).^2-L(12,1).^2)./(2*r_i(:,12).*r_i1(:,12)));
+B(:,13)=acos((r_i(:,13).^2 +r_i1(:,13).^2-L(13,1).^2)./(2*r_i(:,13).*r_i1(:,13)));
+B(:,14)=acos((r_i(:,14).^2 +r_i1(:,14).^2-L(14,1).^2)./(2*r_i(:,14).*r_i1(:,14)));
+B(:,15)=acos((r_i(:,15).^2 +r_i1(:,15).^2-L(15,1).^2)./(2*r_i(:,15).*r_i1(:,15)));
+B(:,16)=acos((r_i(:,16).^2 +r_i1(:,16).^2-L(16,1).^2)./(2*r_i(:,16).*r_i1(:,16)));
+B(:,17)=acos((r_i(:,17).^2 +r_i1(:,17).^2-L(17,1).^2)./(2*r_i(:,17).*r_i1(:,17)));
+B(:,18)=acos((r_i(:,18).^2 +r_i1(:,18).^2-L(18,1).^2)./(2*r_i(:,18).*r_i1(:,18)));
+B(:,19)=acos((r_i(:,19).^2 +r_i1(:,19).^2-L(19,1).^2)./(2*r_i(:,19).*r_i1(:,19)));
+B(:,20)=acos((r_i(:,20).^2 +r_i1(:,20).^2-L(20,1).^2)./(2*r_i(:,20).*r_i1(:,20)));
+B(:,21)=acos((r_i(:,21).^2 +r_i1(:,21).^2-L(21,1).^2)./(2*r_i(:,21).*r_i1(:,21)));
+B(:,22)=acos((r_i(:,22).^2 +r_i1(:,22).^2-L(22,1).^2)./(2*r_i(:,22).*r_i1(:,22)));
+B(:,23)=acos((r_i(:,23).^2 +r_i1(:,23).^2-L(23,1).^2)./(2*r_i(:,23).*r_i1(:,23)));
+B(:,24)=acos((r_i(:,24).^2 +r_i1(:,24).^2-L(24,1).^2)./(2*r_i(:,24).*r_i1(:,24)));
+B(:,25)=acos((r_i(:,25).^2 +r_i1(:,25).^2-L(25,1).^2)./(2*r_i(:,25).*r_i1(:,25)));
+B(:,26)=acos((r_i(:,26).^2 +r_i1(:,26).^2-L(26,1).^2)./(2*r_i(:,26).*r_i1(:,26)));
+B(:,27)=acos((r_i(:,27).^2 +r_i1(:,27).^2-L(27,1).^2)./(2*r_i(:,27).*r_i1(:,27)));
+B(:,28)=acos((r_i(:,28).^2 +r_i1(:,28).^2-L(28,1).^2)./(2*r_i(:,28).*r_i1(:,28)));
+B(:,29)=acos((r_i(:,29).^2 +r_i1(:,29).^2-L(29,1).^2)./(2*r_i(:,29).*r_i1(:,29)));
+B(:,30)=acos((r_i(:,30).^2 +r_i1(:,30).^2-L(30,1).^2)./(2*r_i(:,30).*r_i1(:,30)));
+B(:,31)=acos((r_i(:,31).^2 +r_i1(:,31).^2-L(31,1).^2)./(2*r_i(:,31).*r_i1(:,31)));
+B(:,32)=acos((r_i(:,32).^2 +r_i1(:,32).^2-L(32,1).^2)./(2*r_i(:,32).*r_i1(:,32)));
+B(:,33)=acos((r_i(:,33).^2 +r_i1(:,33).^2-L(33,1).^2)./(2*r_i(:,33).*r_i1(:,33)));
+B(:,34)=acos((r_i(:,34).^2 +r_i1(:,34).^2-L(34,1).^2)./(2*r_i(:,34).*r_i1(:,34)));
+
+% ___________________________________________________________________________
+
+% 5. COMPONENTES DE VELOCIDADES INDUZIDAS PELAS SINGULARIDADES NO SISTEMA LOCAL
+
+% 5.1 COMPONENTE X DA VELOCIDADE DE  INFLUÊNCIA DAS FONTES  
+u_f_l=(1/(2*pi))*log(r_i./r_i1);
+
+% 5.2 COMPONENTE Y DA VELOCIDADE DE  INFLUÊNCIA DAS FONTES  
+v_f_l=(1/(2*pi))*B;
+
+% 5.3 COMPONENTE X DA VELOCIDADE DE  INFLUÊNCIA DOS VÓRTICES  
+u_v_l=(1/(2*pi))*B;
+
+% 5.4 COMPONENTE Y DA VELOCIDADE DE  INFLUÊNCIA DOS VÓRTICES  
+v_v_l=(1/(2*pi))*log(r_i.\r_i1);
+
+%__________________________________________________________________________
+
+% 6. COMPONENTES DE VELOCIDADES INDUZIDAS PELAS SINGULARIDADES NO SISTEMA GLOBAL
+
+% 6.1 COMPONENTES DE VELOCIDADES INDUZIDAS PELAS SINGULARIDADES  
+u_f(1,:)= u_f_l(1,:).*cos(theta(1,1))-v_f_l(1,:).*sin(theta(1,1));
+u_f(2,:)= u_f_l(2,:).*cos(theta(2,1))-v_f_l(2,:).*sin(theta(2,1));
+u_f(3,:)= u_f_l(3,:).*cos(theta(3,1))-v_f_l(3,:).*sin(theta(3,1));
+u_f(4,:)= u_f_l(4,:).*cos(theta(4,1))-v_f_l(4,:).*sin(theta(4,1));
+u_f(5,:)= u_f_l(5,:).*cos(theta(5,1))-v_f_l(5,:).*sin(theta(5,1));
+u_f(6,:)= u_f_l(6,:).*cos(theta(6,1))-v_f_l(6,:).*sin(theta(6,1));
+u_f(7,:)= u_f_l(7,:).*cos(theta(7,1))-v_f_l(7,:).*sin(theta(7,1));
+u_f(8,:)= u_f_l(8,:).*cos(theta(8,1))-v_f_l(8,:).*sin(theta(8,1));
+u_f(9,:)= u_f_l(9,:).*cos(theta(9,1))-v_f_l(9,:).*sin(theta(9,1));
+u_f(10,:)= u_f_l(10,:).*cos(theta(10,1))-v_f_l(10,:).*sin(theta(10,1));
+u_f(11,:)= u_f_l(11,:).*cos(theta(11,1))-v_f_l(11,:).*sin(theta(11,1));
+u_f(12,:)= u_f_l(12,:).*cos(theta(12,1))-v_f_l(12,:).*sin(theta(12,1));
+u_f(13,:)= u_f_l(13,:).*cos(theta(13,1))-v_f_l(13,:).*sin(theta(13,1));
+u_f(14,:)= u_f_l(14,:).*cos(theta(14,1))-v_f_l(14,:).*sin(theta(14,1));
+u_f(15,:)= u_f_l(15,:).*cos(theta(15,1))-v_f_l(15,:).*sin(theta(15,1));
+u_f(16,:)= u_f_l(16,:).*cos(theta(16,1))-v_f_l(16,:).*sin(theta(16,1));
+u_f(17,:)= u_f_l(17,:).*cos(theta(17,1))-v_f_l(17,:).*sin(theta(17,1));
+u_f(18,:)= u_f_l(18,:).*cos(theta(18,1))-v_f_l(18,:).*sin(theta(18,1));
+u_f(19,:)= u_f_l(19,:).*cos(theta(19,1))-v_f_l(19,:).*sin(theta(19,1));
+u_f(20,:)= u_f_l(20,:).*cos(theta(20,1))-v_f_l(20,:).*sin(theta(20,1));
+u_f(21,:)= u_f_l(21,:).*cos(theta(21,1))-v_f_l(21,:).*sin(theta(21,1));
+u_f(22,:)= u_f_l(22,:).*cos(theta(22,1))-v_f_l(22,:).*sin(theta(22,1));
+u_f(23,:)= u_f_l(23,:).*cos(theta(23,1))-v_f_l(23,:).*sin(theta(23,1));
+u_f(24,:)= u_f_l(24,:).*cos(theta(24,1))-v_f_l(24,:).*sin(theta(24,1));
+u_f(25,:)= u_f_l(25,:).*cos(theta(25,1))-v_f_l(25,:).*sin(theta(25,1));
+u_f(26,:)= u_f_l(26,:).*cos(theta(26,1))-v_f_l(26,:).*sin(theta(26,1));
+u_f(27,:)= u_f_l(27,:).*cos(theta(27,1))-v_f_l(27,:).*sin(theta(27,1));
+u_f(28,:)= u_f_l(28,:).*cos(theta(28,1))-v_f_l(28,:).*sin(theta(28,1));
+u_f(29,:)= u_f_l(29,:).*cos(theta(29,1))-v_f_l(29,:).*sin(theta(29,1));
+u_f(30,:)= u_f_l(30,:).*cos(theta(30,1))-v_f_l(30,:).*sin(theta(30,1));
+u_f(31,:)= u_f_l(31,:).*cos(theta(31,1))-v_f_l(31,:).*sin(theta(31,1));
+u_f(32,:)= u_f_l(32,:).*cos(theta(32,1))-v_f_l(32,:).*sin(theta(32,1));
+u_f(33,:)= u_f_l(33,:).*cos(theta(33,1))-v_f_l(33,:).*sin(theta(33,1));
+u_f(34,:)= u_f_l(34,:).*cos(theta(34,1))-v_f_l(34,:).*sin(theta(34,1));
+
+% 6.2 COMPONENTE Y DA VELOCIDADE DE  INFLUÊNCIA DAS FONTES
+v_f(1,:)=u_f_l(1,:).*sin(theta(1,1))+v_f_l(1,:).*cos(theta(1,1));
+v_f(2,:)=u_f_l(2,:).*sin(theta(2,1))+v_f_l(2,:).*cos(theta(2,1));
+v_f(3,:)=u_f_l(3,:).*sin(theta(3,1))+v_f_l(3,:).*cos(theta(3,1));
+v_f(4,:)=u_f_l(4,:).*sin(theta(4,1))+v_f_l(4,:).*cos(theta(4,1));
+v_f(5,:)=u_f_l(5,:).*sin(theta(5,1))+v_f_l(5,:).*cos(theta(5,1));
+v_f(6,:)=u_f_l(6,:).*sin(theta(6,1))+v_f_l(6,:).*cos(theta(6,1));
+v_f(7,:)=u_f_l(7,:).*sin(theta(7,1))+v_f_l(7,:).*cos(theta(7,1));
+v_f(8,:)=u_f_l(8,:).*sin(theta(8,1))+v_f_l(8,:).*cos(theta(8,1));
+v_f(9,:)=u_f_l(9,:).*sin(theta(9,1))+v_f_l(9,:).*cos(theta(9,1));
+v_f(10,:)=u_f_l(10,:).*sin(theta(10,1))+v_f_l(10,:).*cos(theta(10,1));
+v_f(11,:)=u_f_l(11,:).*sin(theta(11,1))+v_f_l(11,:).*cos(theta(11,1));
+v_f(12,:)=u_f_l(12,:).*sin(theta(12,1))+v_f_l(12,:).*cos(theta(12,1));
+v_f(13,:)=u_f_l(13,:).*sin(theta(13,1))+v_f_l(13,:).*cos(theta(13,1));
+v_f(14,:)=u_f_l(14,:).*sin(theta(14,1))+v_f_l(14,:).*cos(theta(14,1));
+v_f(15,:)=u_f_l(15,:).*sin(theta(15,1))+v_f_l(15,:).*cos(theta(15,1));
+v_f(16,:)=u_f_l(16,:).*sin(theta(16,1))+v_f_l(16,:).*cos(theta(16,1));
+v_f(17,:)=u_f_l(17,:).*sin(theta(17,1))+v_f_l(17,:).*cos(theta(17,1));
+v_f(18,:)=u_f_l(18,:).*sin(theta(18,1))+v_f_l(18,:).*cos(theta(18,1));
+v_f(19,:)=u_f_l(19,:).*sin(theta(19,1))+v_f_l(19,:).*cos(theta(19,1));
+v_f(20,:)=u_f_l(20,:).*sin(theta(20,1))+v_f_l(20,:).*cos(theta(20,1));
+v_f(21,:)=u_f_l(21,:).*sin(theta(21,1))+v_f_l(21,:).*cos(theta(21,1));
+v_f(22,:)=u_f_l(22,:).*sin(theta(22,1))+v_f_l(22,:).*cos(theta(22,1));
+v_f(23,:)=u_f_l(23,:).*sin(theta(23,1))+v_f_l(23,:).*cos(theta(23,1));
+v_f(24,:)=u_f_l(24,:).*sin(theta(24,1))+v_f_l(24,:).*cos(theta(24,1));
+v_f(25,:)=u_f_l(25,:).*sin(theta(25,1))+v_f_l(25,:).*cos(theta(25,1));
+v_f(26,:)=u_f_l(26,:).*sin(theta(26,1))+v_f_l(26,:).*cos(theta(26,1));
+v_f(27,:)=u_f_l(27,:).*sin(theta(27,1))+v_f_l(27,:).*cos(theta(27,1));
+v_f(28,:)=u_f_l(28,:).*sin(theta(28,1))+v_f_l(28,:).*cos(theta(28,1));
+v_f(29,:)=u_f_l(29,:).*sin(theta(29,1))+v_f_l(29,:).*cos(theta(29,1));
+v_f(30,:)=u_f_l(30,:).*sin(theta(30,1))+v_f_l(30,:).*cos(theta(30,1));
+v_f(31,:)=u_f_l(31,:).*sin(theta(31,1))+v_f_l(31,:).*cos(theta(31,1));
+v_f(32,:)=u_f_l(32,:).*sin(theta(32,1))+v_f_l(32,:).*cos(theta(32,1));
+v_f(33,:)=u_f_l(33,:).*sin(theta(33,1))+v_f_l(33,:).*cos(theta(33,1));
+v_f(34,:)=u_f_l(34,:).*sin(theta(34,1))+v_f_l(34,:).*cos(theta(34,1));
+
+% 6.3 COMPONENTE X DA VELOCIDADE DE  INFLUÊNCIA DOS VÓRTICES
+u_v(1,:)= u_v_l(1,:).*cos(theta(1,1))-v_v_l(1,:).*sin(theta(1,1));
+u_v(2,:)= u_v_l(2,:).*cos(theta(2,1))-v_v_l(2,:).*sin(theta(2,1));
+u_v(3,:)= u_v_l(3,:).*cos(theta(3,1))-v_v_l(3,:).*sin(theta(3,1));
+u_v(4,:)= u_v_l(4,:).*cos(theta(4,1))-v_v_l(4,:).*sin(theta(4,1));
+u_v(5,:)= u_v_l(5,:).*cos(theta(5,1))-v_v_l(5,:).*sin(theta(5,1));
+u_v(6,:)= u_v_l(6,:).*cos(theta(6,1))-v_v_l(6,:).*sin(theta(6,1));
+u_v(7,:)= u_v_l(7,:).*cos(theta(7,1))-v_v_l(7,:).*sin(theta(7,1));
+u_v(8,:)= u_v_l(8,:).*cos(theta(8,1))-v_v_l(8,:).*sin(theta(8,1));
+u_v(9,:)= u_v_l(9,:).*cos(theta(9,1))-v_v_l(9,:).*sin(theta(9,1));
+u_v(10,:)= u_v_l(10,:).*cos(theta(10,1))-v_v_l(10,:).*sin(theta(10,1));
+u_v(11,:)= u_v_l(11,:).*cos(theta(11,1))-v_v_l(11,:).*sin(theta(11,1));
+u_v(12,:)= u_v_l(12,:).*cos(theta(12,1))-v_v_l(12,:).*sin(theta(12,1));
+u_v(13,:)= u_v_l(13,:).*cos(theta(13,1))-v_v_l(13,:).*sin(theta(13,1));
+u_v(14,:)= u_v_l(14,:).*cos(theta(14,1))-v_v_l(14,:).*sin(theta(14,1));
+u_v(15,:)= u_v_l(15,:).*cos(theta(15,1))-v_v_l(15,:).*sin(theta(15,1));
+u_v(16,:)= u_v_l(16,:).*cos(theta(16,1))-v_v_l(16,:).*sin(theta(16,1));
+u_v(17,:)= u_v_l(17,:).*cos(theta(17,1))-v_v_l(17,:).*sin(theta(17,1));
+u_v(18,:)= u_v_l(18,:).*cos(theta(18,1))-v_v_l(18,:).*sin(theta(18,1));
+u_v(19,:)= u_v_l(19,:).*cos(theta(19,1))-v_v_l(19,:).*sin(theta(19,1));
+u_v(20,:)= u_v_l(20,:).*cos(theta(20,1))-v_v_l(20,:).*sin(theta(20,1));
+u_v(21,:)= u_v_l(21,:).*cos(theta(21,1))-v_v_l(21,:).*sin(theta(21,1));
+u_v(22,:)= u_v_l(22,:).*cos(theta(22,1))-v_v_l(22,:).*sin(theta(22,1));
+u_v(23,:)= u_v_l(23,:).*cos(theta(23,1))-v_v_l(23,:).*sin(theta(23,1));
+u_v(24,:)= u_v_l(24,:).*cos(theta(24,1))-v_v_l(24,:).*sin(theta(24,1));
+u_v(25,:)= u_v_l(25,:).*cos(theta(25,1))-v_v_l(25,:).*sin(theta(25,1));
+u_v(26,:)= u_v_l(26,:).*cos(theta(26,1))-v_v_l(26,:).*sin(theta(26,1));
+u_v(27,:)= u_v_l(27,:).*cos(theta(27,1))-v_v_l(27,:).*sin(theta(27,1));
+u_v(28,:)= u_v_l(28,:).*cos(theta(28,1))-v_v_l(28,:).*sin(theta(28,1));
+u_v(29,:)= u_v_l(29,:).*cos(theta(29,1))-v_v_l(29,:).*sin(theta(29,1));
+u_v(30,:)= u_v_l(30,:).*cos(theta(30,1))-v_v_l(30,:).*sin(theta(30,1));
+u_v(31,:)= u_v_l(31,:).*cos(theta(31,1))-v_v_l(31,:).*sin(theta(31,1));
+u_v(32,:)= u_v_l(32,:).*cos(theta(32,1))-v_v_l(32,:).*sin(theta(32,1));
+u_v(33,:)= u_v_l(33,:).*cos(theta(33,1))-v_v_l(33,:).*sin(theta(33,1));
+u_v(34,:)= u_v_l(34,:).*cos(theta(34,1))-v_v_l(34,:).*sin(theta(34,1));
+
+% 6.4 COMPONENTE Y DA VELOCIDADE DE  INFLUÊNCIA DOS VÓRTICES
+v_v(1,:)=u_v_l(1,:).*sin(theta(1,1))+v_v_l(1,:).*cos(theta(1,1));
+v_v(2,:)=u_v_l(2,:).*sin(theta(2,1))+v_v_l(2,:).*cos(theta(2,1));
+v_v(3,:)=u_v_l(3,:).*sin(theta(3,1))+v_v_l(3,:).*cos(theta(3,1));
+v_v(4,:)=u_v_l(4,:).*sin(theta(4,1))+v_v_l(4,:).*cos(theta(4,1));
+v_v(5,:)=u_v_l(5,:).*sin(theta(5,1))+v_v_l(5,:).*cos(theta(5,1));
+v_v(6,:)=u_v_l(6,:).*sin(theta(6,1))+v_v_l(6,:).*cos(theta(6,1));
+v_v(7,:)=u_v_l(7,:).*sin(theta(7,1))+v_v_l(7,:).*cos(theta(7,1));
+v_v(8,:)=u_v_l(8,:).*sin(theta(8,1))+v_v_l(8,:).*cos(theta(8,1));
+v_v(9,:)=u_v_l(9,:).*sin(theta(9,1))+v_v_l(9,:).*cos(theta(9,1));
+v_v(10,:)=u_v_l(10,:).*sin(theta(10,1))+v_v_l(10,:).*cos(theta(10,1));
+v_v(11,:)=u_v_l(11,:).*sin(theta(11,1))+v_v_l(11,:).*cos(theta(11,1));
+v_v(12,:)=u_v_l(12,:).*sin(theta(12,1))+v_v_l(12,:).*cos(theta(12,1));
+v_v(13,:)=u_v_l(13,:).*sin(theta(13,1))+v_v_l(13,:).*cos(theta(13,1));
+v_v(14,:)=u_v_l(14,:).*sin(theta(14,1))+v_v_l(14,:).*cos(theta(14,1));
+v_v(15,:)=u_v_l(15,:).*sin(theta(15,1))+v_v_l(15,:).*cos(theta(15,1));
+v_v(16,:)=u_v_l(16,:).*sin(theta(16,1))+v_v_l(16,:).*cos(theta(16,1));
+v_v(17,:)=u_v_l(17,:).*sin(theta(17,1))+v_v_l(17,:).*cos(theta(17,1));
+v_v(18,:)=u_v_l(18,:).*sin(theta(18,1))+v_v_l(18,:).*cos(theta(18,1));
+v_v(19,:)=u_v_l(19,:).*sin(theta(19,1))+v_v_l(19,:).*cos(theta(19,1));
+v_v(20,:)=u_v_l(20,:).*sin(theta(20,1))+v_v_l(20,:).*cos(theta(20,1));
+v_v(21,:)=u_v_l(21,:).*sin(theta(21,1))+v_v_l(21,:).*cos(theta(21,1));
+v_v(22,:)=u_v_l(22,:).*sin(theta(22,1))+v_v_l(22,:).*cos(theta(22,1));
+v_v(23,:)=u_v_l(23,:).*sin(theta(23,1))+v_v_l(23,:).*cos(theta(23,1));
+v_v(24,:)=u_v_l(24,:).*sin(theta(24,1))+v_v_l(24,:).*cos(theta(24,1));
+v_v(25,:)=u_v_l(25,:).*sin(theta(25,1))+v_v_l(25,:).*cos(theta(25,1));
+v_v(26,:)=u_v_l(26,:).*sin(theta(26,1))+v_v_l(26,:).*cos(theta(26,1));
+v_v(27,:)=u_v_l(27,:).*sin(theta(27,1))+v_v_l(27,:).*cos(theta(27,1));
+v_v(28,:)=u_v_l(28,:).*sin(theta(28,1))+v_v_l(28,:).*cos(theta(28,1));
+v_v(29,:)=u_v_l(29,:).*sin(theta(29,1))+v_v_l(29,:).*cos(theta(29,1));
+v_v(30,:)=u_v_l(30,:).*sin(theta(30,1))+v_v_l(30,:).*cos(theta(30,1));
+v_v(31,:)=u_v_l(31,:).*sin(theta(31,1))+v_v_l(31,:).*cos(theta(31,1));
+v_v(32,:)=u_v_l(32,:).*sin(theta(32,1))+v_v_l(32,:).*cos(theta(32,1));
+v_v(33,:)=u_v_l(33,:).*sin(theta(33,1))+v_v_l(33,:).*cos(theta(33,1));
+v_v(34,:)=u_v_l(34,:).*sin(theta(34,1))+v_v_l(34,:).*cos(theta(34,1));
+
+%__________________________________________________________________________
+
+% 7. CÁLCULO DA MATRIZ A PARA DETERMINAR AS SINGULARIDADES
+
+% 7.1 COEFICIENTES DE INFLUÊNCIA I,J
+A(1,:)=v_f(1,:).*cos(theta(1,1))-u_f(1,:).*sin(theta(1,1));
+A(2,:)=v_f(2,:).*cos(theta(2,1))-u_f(2,:).*sin(theta(2,1));
+A(3,:)=v_f(3,:).*cos(theta(3,1))-u_f(3,:).*sin(theta(3,1));
+A(4,:)=v_f(4,:).*cos(theta(4,1))-u_f(4,:).*sin(theta(4,1));
+A(5,:)=v_f(5,:).*cos(theta(5,1))-u_f(5,:).*sin(theta(5,1));
+A(6,:)=v_f(6,:).*cos(theta(6,1))-u_f(6,:).*sin(theta(6,1));
+A(7,:)=v_f(7,:).*cos(theta(7,1))-u_f(7,:).*sin(theta(7,1));
+A(8,:)=v_f(8,:).*cos(theta(8,1))-u_f(8,:).*sin(theta(8,1));
+A(9,:)=v_f(9,:).*cos(theta(9,1))-u_f(9,:).*sin(theta(9,1));
+A(10,:)=v_f(10,:).*cos(theta(10,1))-u_f(10,:).*sin(theta(10,1));
+A(11,:)=v_f(11,:).*cos(theta(11,1))-u_f(11,:).*sin(theta(11,1));
+A(12,:)=v_f(12,:).*cos(theta(12,1))-u_f(12,:).*sin(theta(12,1));
+A(13,:)=v_f(13,:).*cos(theta(13,1))-u_f(13,:).*sin(theta(13,1));
+A(14,:)=v_f(14,:).*cos(theta(14,1))-u_f(14,:).*sin(theta(14,1));
+A(15,:)=v_f(15,:).*cos(theta(15,1))-u_f(15,:).*sin(theta(15,1));
+A(16,:)=v_f(16,:).*cos(theta(16,1))-u_f(16,:).*sin(theta(16,1));
+A(17,:)=v_f(17,:).*cos(theta(17,1))-u_f(17,:).*sin(theta(17,1));
+A(18,:)=v_f(18,:).*cos(theta(18,1))-u_f(18,:).*sin(theta(18,1));
+A(19,:)=v_f(19,:).*cos(theta(19,1))-u_f(19,:).*sin(theta(19,1));
+A(20,:)=v_f(20,:).*cos(theta(20,1))-u_f(20,:).*sin(theta(20,1));
+A(21,:)=v_f(21,:).*cos(theta(21,1))-u_f(21,:).*sin(theta(21,1));
+A(22,:)=v_f(22,:).*cos(theta(22,1))-u_f(22,:).*sin(theta(22,1));
+A(23,:)=v_f(23,:).*cos(theta(23,1))-u_f(23,:).*sin(theta(23,1));
+A(24,:)=v_f(24,:).*cos(theta(24,1))-u_f(24,:).*sin(theta(24,1));
+A(25,:)=v_f(25,:).*cos(theta(25,1))-u_f(25,:).*sin(theta(25,1));
+A(26,:)=v_f(26,:).*cos(theta(26,1))-u_f(26,:).*sin(theta(26,1));
+A(27,:)=v_f(27,:).*cos(theta(27,1))-u_f(27,:).*sin(theta(27,1));
+A(28,:)=v_f(28,:).*cos(theta(28,1))-u_f(28,:).*sin(theta(28,1));
+A(29,:)=v_f(29,:).*cos(theta(29,1))-u_f(29,:).*sin(theta(29,1));
+A(30,:)=v_f(30,:).*cos(theta(30,1))-u_f(30,:).*sin(theta(30,1));
+A(31,:)=v_f(31,:).*cos(theta(31,1))-u_f(31,:).*sin(theta(31,1));
+A(32,:)=v_f(32,:).*cos(theta(32,1))-u_f(32,:).*sin(theta(32,1));
+A(33,:)=v_f(33,:).*cos(theta(33,1))-u_f(33,:).*sin(theta(33,1));
+A(34,:)=v_f(34,:).*cos(theta(34,1))-u_f(34,:).*sin(theta(34,1));
+
+% 7.2 COEFICIENTES DE INFLUÊNCIA  N+1,J
+A(35,:)=u_f(1,:)*cos(theta(1,1))+v_f(1,:)*sin(theta(1,1))+u_f(34,:)*cos(theta(34,1))+v_f(34,:)*sin(theta(34,1));
+
+% 7.3 COEFICIENTES DE INFLUÊNCIA  I,N+1
+A(1,35)= sum(v_v(1,1:34))*cos(theta(1,1))-sum(u_v(1,1:34))*sin(theta(1,1));
+A(2,35)= sum(v_v(2,1:34))*cos(theta(2,1))-sum(u_v(2,1:34))*sin(theta(2,1));
+A(3,35)= sum(v_v(3,1:34))*cos(theta(3,1))-sum(u_v(3,1:34))*sin(theta(3,1));
+A(4,35)= sum(v_v(4,1:34))*cos(theta(4,1))-sum(u_v(4,1:34))*sin(theta(4,1));
+A(5,35)= sum(v_v(5,1:34))*cos(theta(5,1))-sum(u_v(5,1:34))*sin(theta(5,1));
+A(6,35)= sum(v_v(6,1:34))*cos(theta(6,1))-sum(u_v(6,1:34))*sin(theta(6,1));
+A(7,35)= sum(v_v(7,1:34))*cos(theta(7,1))-sum(u_v(7,1:34))*sin(theta(7,1));
+A(8,35)= sum(v_v(8,1:34))*cos(theta(8,1))-sum(u_v(8,1:34))*sin(theta(8,1));
+A(9,35)= sum(v_v(9,1:34))*cos(theta(9,1))-sum(u_v(9,1:34))*sin(theta(9,1));
+A(10,35)= sum(v_v(10,1:34))*cos(theta(10,1))-sum(u_v(10,1:34))*sin(theta(10,1));
+A(11,35)= sum(v_v(11,1:34))*cos(theta(11,1))-sum(u_v(11,1:34))*sin(theta(11,1));
+A(12,35)= sum(v_v(12,1:34))*cos(theta(12,1))-sum(u_v(12,1:34))*sin(theta(12,1));
+A(13,35)= sum(v_v(13,1:34))*cos(theta(13,1))-sum(u_v(13,1:34))*sin(theta(13,1));
+A(14,35)= sum(v_v(14,1:34))*cos(theta(14,1))-sum(u_v(14,1:34))*sin(theta(14,1));
+A(15,35)= sum(v_v(15,1:34))*cos(theta(15,1))-sum(u_v(15,1:34))*sin(theta(15,1));
+A(16,35)= sum(v_v(16,1:34))*cos(theta(16,1))-sum(u_v(16,1:34))*sin(theta(16,1));
+A(17,35)= sum(v_v(17,1:34))*cos(theta(17,1))-sum(u_v(17,1:34))*sin(theta(17,1));
+A(18,35)= sum(v_v(18,1:34))*cos(theta(18,1))-sum(u_v(18,1:34))*sin(theta(18,1));
+A(19,35)= sum(v_v(19,1:34))*cos(theta(19,1))-sum(u_v(19,1:34))*sin(theta(19,1));
+A(20,35)= sum(v_v(20,1:34))*cos(theta(20,1))-sum(u_v(20,1:34))*sin(theta(20,1));
+A(21,35)= sum(v_v(21,1:34))*cos(theta(21,1))-sum(u_v(21,1:34))*sin(theta(21,1));
+A(22,35)= sum(v_v(22,1:34))*cos(theta(22,1))-sum(u_v(22,1:34))*sin(theta(22,1));
+A(23,35)= sum(v_v(23,1:34))*cos(theta(23,1))-sum(u_v(23,1:34))*sin(theta(23,1));
+A(24,35)= sum(v_v(24,1:34))*cos(theta(24,1))-sum(u_v(24,1:34))*sin(theta(24,1));
+A(25,35)= sum(v_v(25,1:34))*cos(theta(25,1))-sum(u_v(25,1:34))*sin(theta(25,1));
+A(26,35)= sum(v_v(26,1:34))*cos(theta(26,1))-sum(u_v(26,1:34))*sin(theta(26,1));
+A(27,35)= sum(v_v(27,1:34))*cos(theta(27,1))-sum(u_v(27,1:34))*sin(theta(27,1));
+A(28,35)= sum(v_v(28,1:34))*cos(theta(28,1))-sum(u_v(28,1:34))*sin(theta(28,1));
+A(29,35)= sum(v_v(29,1:34))*cos(theta(29,1))-sum(u_v(29,1:34))*sin(theta(29,1));
+A(30,35)= sum(v_v(30,1:34))*cos(theta(30,1))-sum(u_v(30,1:34))*sin(theta(30,1));
+A(31,35)= sum(v_v(31,1:34))*cos(theta(31,1))-sum(u_v(31,1:34))*sin(theta(31,1));
+A(32,35)= sum(v_v(32,1:34))*cos(theta(32,1))-sum(u_v(32,1:34))*sin(theta(32,1));
+A(33,35)= sum(v_v(33,1:34))*cos(theta(33,1))-sum(u_v(33,1:34))*sin(theta(33,1));
+A(34,35)= sum(v_v(34,1:34))*cos(theta(34,1))-sum(u_v(34,1:34))*sin(theta(34,1));
+
+% 7.4 COEFICIENTES DE INFLUÊNCIA N+1,N+1
+A(35,35)= sum(u_v(1,:)*cos(theta(1,1))+v_v(1,:)*sin(theta(1,1))+u_v(34,:)*cos(theta(34,1))+v_v(34,:)*sin(theta(34,1)));
+
+%__________________________________________________________________________
+
+% 8. CÁLCULO DA MATRIZ b PARA DETERMINAR AS SINGULARIDADES
+
+% 8.1 MATRIZ DOS COEFICIENTES b (Influencia do escoamento univofrme) (alpha: -10° à 15°)
+
+% Para alpha1 
+b1=-V*(cos(theta)*sin(alpha1)-sin(theta)*cos(alpha1));
+b1(35,1)=-V*(cos(alpha1)*cos(theta(1,1))+sin(alpha1)*sin(theta(1,1))+cos(alpha1)*cos(theta(34,1))+sin(alpha1)*sin(theta(34,1)));
+
+% Para alpha2 
+b2=-V*(cos(theta)*sin(alpha2)-sin(theta)*cos(alpha2));
+b2(35,1)=-V*(cos(alpha2)*cos(theta(1,1))+sin(alpha2)*sin(theta(1,1))+cos(alpha2)*cos(theta(34,1))+sin(alpha2)*sin(theta(34,1)));
+
+% Para alpha3 
+b3=-V*(cos(theta)*sin(alpha3)-sin(theta)*cos(alpha3));
+b3(35,1)=-V*(cos(alpha3)*cos(theta(1,1))+sin(alpha3)*sin(theta(1,1))+cos(alpha3)*cos(theta(34,1))+sin(alpha3)*sin(theta(34,1)));
+
+% Para alpha4 
+b4=-V*(cos(theta)*sin(alpha4)-sin(theta)*cos(alpha4));
+b4(35,1)=-V*(cos(alpha4)*cos(theta(1,1))+sin(alpha4)*sin(theta(1,1))+cos(alpha4)*cos(theta(34,1))+sin(alpha4)*sin(theta(34,1)));
+
+% Para alpha5 
+b5=-V*(cos(theta)*sin(alpha5)-sin(theta)*cos(alpha5));
+b5(35,1)=-V*(cos(alpha5)*cos(theta(1,1))+sin(alpha5)*sin(theta(1,1))+cos(alpha5)*cos(theta(34,1))+sin(alpha5)*sin(theta(34,1)));
+
+% Para alpha6 
+b6=-V*(cos(theta)*sin(alpha6)-sin(theta)*cos(alpha6));
+b6(35,1)=-V*(cos(alpha6)*cos(theta(1,1))+sin(alpha6)*sin(theta(1,1))+cos(alpha6)*cos(theta(34,1))+sin(alpha6)*sin(theta(34,1)));
+
+% Para alpha7 
+b7=-V*(cos(theta)*sin(alpha7)-sin(theta)*cos(alpha7));
+b7(35,1)=-V*(cos(alpha7)*cos(theta(1,1))+sin(alpha7)*sin(theta(1,1))+cos(alpha7)*cos(theta(34,1))+sin(alpha7)*sin(theta(34,1)));
+
+% Para alpha8 
+b8=-V*(cos(theta)*sin(alpha8)-sin(theta)*cos(alpha8));
+b8(35,1)=-V*(cos(alpha8)*cos(theta(1,1))+sin(alpha8)*sin(theta(1,1))+cos(alpha8)*cos(theta(34,1))+sin(alpha8)*sin(theta(34,1)));
+
+% Para alpha9 
+b9=-V*(cos(theta)*sin(alpha9)-sin(theta)*cos(alpha9));
+b9(35,1)=-V*(cos(alpha9)*cos(theta(1,1))+sin(alpha9)*sin(theta(1,1))+cos(alpha9)*cos(theta(34,1))+sin(alpha9)*sin(theta(34,1)));
+
+% Para alpha10 
+b10=-V*(cos(theta)*sin(alpha10)-sin(theta)*cos(alpha10));
+b10(35,1)=-V*(cos(alpha10)*cos(theta(1,1))+sin(alpha10)*sin(theta(1,1))+cos(alpha10)*cos(theta(34,1))+sin(alpha10)*sin(theta(34,1)));
+
+% Para alpha11 
+b11=-V*(cos(theta)*sin(alpha11)-sin(theta)*cos(alpha11));
+b11(35,1)=-V*(cos(alpha11)*cos(theta(1,1))+sin(alpha11)*sin(theta(1,1))+cos(alpha11)*cos(theta(34,1))+sin(alpha11)*sin(theta(34,1)));
+
+% Para alpha12 
+b12=-V*(cos(theta)*sin(alpha12)-sin(theta)*cos(alpha12));
+b12(35,1)=-V*(cos(alpha12)*cos(theta(1,1))+sin(alpha12)*sin(theta(1,1))+cos(alpha12)*cos(theta(34,1))+sin(alpha12)*sin(theta(34,1)));
+
+% Para alpha13 
+b13=-V*(cos(theta)*sin(alpha13)-sin(theta)*cos(alpha13));
+b13(35,1)=-V*(cos(alpha13)*cos(theta(1,1))+sin(alpha13)*sin(theta(1,1))+cos(alpha13)*cos(theta(34,1))+sin(alpha13)*sin(theta(34,1)));
+
+% Para alpha14 
+b14=-V*(cos(theta)*sin(alpha14)-sin(theta)*cos(alpha14));
+b14(35,1)=-V*(cos(alpha14)*cos(theta(1,1))+sin(alpha14)*sin(theta(1,1))+cos(alpha14)*cos(theta(34,1))+sin(alpha14)*sin(theta(34,1)));
+
+% Para alpha15 
+b15=-V*(cos(theta)*sin(alpha15)-sin(theta)*cos(alpha15));
+b15(35,1)=-V*(cos(alpha15)*cos(theta(1,1))+sin(alpha15)*sin(theta(1,1))+cos(alpha15)*cos(theta(34,1))+sin(alpha15)*sin(theta(34,1)));
+
+% Para alpha16 
+b16=-V*(cos(theta)*sin(alpha16)-sin(theta)*cos(alpha16));
+b16(35,1)=-V*(cos(alpha16)*cos(theta(1,1))+sin(alpha16)*sin(theta(1,1))+cos(alpha16)*cos(theta(34,1))+sin(alpha16)*sin(theta(34,1)));
+
+% Para alpha17 
+b17=-V*(cos(theta)*sin(alpha17)-sin(theta)*cos(alpha17));
+b17(35,1)=-V*(cos(alpha17)*cos(theta(1,1))+sin(alpha17)*sin(theta(1,1))+cos(alpha17)*cos(theta(34,1))+sin(alpha17)*sin(theta(34,1)));
+
+% Para alpha18 
+b18=-V*(cos(theta)*sin(alpha18)-sin(theta)*cos(alpha18));
+b18(35,1)=-V*(cos(alpha18)*cos(theta(1,1))+sin(alpha18)*sin(theta(1,1))+cos(alpha18)*cos(theta(34,1))+sin(alpha18)*sin(theta(34,1)));
+
+% Para alpha19 
+b19=-V*(cos(theta)*sin(alpha19)-sin(theta)*cos(alpha19));
+b19(35,1)=-V*(cos(alpha19)*cos(theta(1,1))+sin(alpha19)*sin(theta(1,1))+cos(alpha19)*cos(theta(34,1))+sin(alpha19)*sin(theta(34,1)));
+
+% Para alpha20 
+b20=-V*(cos(theta)*sin(alpha20)-sin(theta)*cos(alpha20));
+b20(35,1)=-V*(cos(alpha20)*cos(theta(1,1))+sin(alpha20)*sin(theta(1,1))+cos(alpha20)*cos(theta(34,1))+sin(alpha20)*sin(theta(34,1)));
+
+% Para alpha21 
+b21=-V*(cos(theta)*sin(alpha21)-sin(theta)*cos(alpha21));
+b21(35,1)=-V*(cos(alpha21)*cos(theta(1,1))+sin(alpha21)*sin(theta(1,1))+cos(alpha21)*cos(theta(34,1))+sin(alpha21)*sin(theta(34,1)));
+
+% Para alpha22 
+b22=-V*(cos(theta)*sin(alpha22)-sin(theta)*cos(alpha22));
+b22(35,1)=-V*(cos(alpha22)*cos(theta(1,1))+sin(alpha22)*sin(theta(1,1))+cos(alpha22)*cos(theta(34,1))+sin(alpha22)*sin(theta(34,1)));
+
+% Para alpha23 
+b23=-V*(cos(theta)*sin(alpha23)-sin(theta)*cos(alpha23));
+b23(35,1)=-V*(cos(alpha23)*cos(theta(1,1))+sin(alpha23)*sin(theta(1,1))+cos(alpha23)*cos(theta(34,1))+sin(alpha23)*sin(theta(34,1)));
+
+% Para alpha24 
+b24=-V*(cos(theta)*sin(alpha24)-sin(theta)*cos(alpha24));
+b24(35,1)=-V*(cos(alpha24)*cos(theta(1,1))+sin(alpha24)*sin(theta(1,1))+cos(alpha24)*cos(theta(34,1))+sin(alpha24)*sin(theta(34,1)));
+
+% Para alpha25 
+b25=-V*(cos(theta)*sin(alpha25)-sin(theta)*cos(alpha25));
+b25(35,1)=-V*(cos(alpha25)*cos(theta(1,1))+sin(alpha25)*sin(theta(1,1))+cos(alpha25)*cos(theta(34,1))+sin(alpha25)*sin(theta(34,1)));
+
+% Para alpha26 
+b26=-V*(cos(theta)*sin(alpha26)-sin(theta)*cos(alpha26));
+b26(35,1)=-V*(cos(alpha26)*cos(theta(1,1))+sin(alpha26)*sin(theta(1,1))+cos(alpha26)*cos(theta(34,1))+sin(alpha26)*sin(theta(34,1)));
+%__________________________________________________________________________
+
+% 9. INTENSIDADE DAS SINGULARIDADES (alpha: -10 à 15°)
+
+% Para alpha1
+I1=A\b1;
+f1=I1(1:34,1);     %Intensidade das fontes
+w1=I1(35,1);       % Intensidade dos vórtices
+F1=real(f1)        % Parte real das fontes
+W1=real(w1)        % Parte real dos vórtices
+
+% Para alpha2
+I2=A\b2;
+f2=I2(1:34,1);     %Intensidade das fontes
+w2=I2(35,1);       % Intensidade dos vórtices
+F2=real(f2)        % Parte real das fontes
+W2=real(w2)        % Parte real dos vórtices
+
+% Para alpha3
+I3=A\b3;
+f3=I3(1:34,1);     %Intensidade das fontes
+w3=I3(35,1);       % Intensidade dos vórtices
+F3=real(f3)        % Parte real das fontes
+W3=real(w3)        % Parte real dos vórtices
+
+% Para alpha4
+I4=A\b4;
+f4=I4(1:34,1);     %Intensidade das fontes
+w4=I4(35,1);       % Intensidade dos vórtices
+F4=real(f4)        % Parte real das fontes
+W4=real(w4)        % Parte real dos vórtices
+
+% Para alpha5
+I5=A\b5;
+f5=I5(1:34,1);     %Intensidade das fontes
+w5=I5(35,1);       % Intensidade dos vórtices
+F5=real(f5)        % Parte real das fontes
+W5=real(w5)        % Parte real dos vórtices
+
+% Para alpha6
+I6=A\b6;
+f6=I6(1:34,1);     %Intensidade das fontes
+w6=I6(35,1);       % Intensidade dos vórtices
+F6=real(f6)        % Parte real das fontes
+W6=real(w6)        % Parte real dos vórtices
+
+% Para alpha7
+I7=A\b7;
+f7=I7(1:34,1);     %Intensidade das fontes
+w7=I7(35,1);       % Intensidade dos vórtices
+F7=real(f7)        % Parte real das fontes
+W7=real(w7)        % Parte real dos vórtices
+
+% Para alpha8
+I8=A\b8;
+f8=I8(1:34,1);     %Intensidade das fontes
+w8=I8(35,1);       % Intensidade dos vórtices
+F8=real(f8)        % Parte real das fontes
+W8=real(w8)        % Parte real dos vórtices
+
+% Para alpha9
+I9=A\b9;
+f9=I9(1:34,1);     %Intensidade das fontes
+w9=I9(35,1);       % Intensidade dos vórtices
+F9=real(f9)        % Parte real das fontes
+W9=real(w9)        % Parte real dos vórtices
+
+% Para alpha10
+I10=A\b10;
+f10=I10(1:34,1);     %Intensidade das fontes
+w10=I10(35,1);       % Intensidade dos vórtices
+F10=real(f10)        % Parte real das fontes
+W10=real(w10)        % Parte real dos vórtices
+
+% Para alpha11
+I11=A\b11;
+f11=I11(1:34,1);     %Intensidade das fontes
+w11=I11(35,1);       % Intensidade dos vórtices
+F11=real(f11)        % Parte real das fontes
+W11=real(w11)        % Parte real dos vórtices
+
+% Para alpha12
+I12=A\b12;
+f12=I12(1:34,1);     %Intensidade das fontes
+w12=I12(35,1);       % Intensidade dos vórtices
+F12=real(f12)        % Parte real das fontes
+W12=real(w12)        % Parte real dos vórtices
+
+% Para alpha13
+I13=A\b13;
+f13=I13(1:34,1);     %Intensidade das fontes
+w13=I13(35,1);       % Intensidade dos vórtices
+F13=real(f13)        % Parte real das fontes
+W13=real(w13)        % Parte real dos vórtices
+
+% Para alpha14
+I14=A\b14;
+f14=I14(1:34,1);     %Intensidade das fontes
+w14=I14(35,1);       % Intensidade dos vórtices
+F14=real(f14)        % Parte real das fontes
+W14=real(w14)        % Parte real dos vórtices
+
+% Para alpha15
+I15=A\b15;
+f15=I15(1:34,1);     %Intensidade das fontes
+w15=I15(35,1);       % Intensidade dos vórtices
+F15=real(f15)        % Parte real das fontes
+W15=real(w15)        % Parte real dos vórtices
+
+% Para alpha16
+I16=A\b16;
+f16=I16(1:34,1);     %Intensidade das fontes
+w16=I16(35,1);       % Intensidade dos vórtices
+F16=real(f16)        % Parte real das fontes
+W16=real(w16)        % Parte real dos vórtices
+
+% Para alpha17
+I17=A\b17;
+f17=I17(1:34,1);     %Intensidade das fontes
+w17=I17(35,1);       % Intensidade dos vórtices
+F17=real(f17)        % Parte real das fontes
+W17=real(w17)        % Parte real dos vórtices
+
+% Para alpha18
+I18=A\b18;
+f18=I18(1:34,1);     %Intensidade das fontes
+w18=I18(35,1);       % Intensidade dos vórtices
+F18=real(f18)        % Parte real das fontes
+W18=real(w18)        % Parte real dos vórtices
+
+% Para alpha19
+I19=A\b19;
+f19=I19(1:34,1);     %Intensidade das fontes
+w19=I19(35,1);       % Intensidade dos vórtices
+F19=real(f19)        % Parte real das fontes
+W19=real(w19)        % Parte real dos vórtices
+
+% Para alpha20
+I20=A\b20;
+f20=I20(1:34,1);     %Intensidade das fontes
+w20=I20(35,1);       % Intensidade dos vórtices
+F20=real(f20)        % Parte real das fontes
+W20=real(w20)        % Parte real dos vórtices
+
+% Para alpha21
+I21=A\b21;
+f21=I21(1:34,1);     %Intensidade das fontes
+w21=I21(35,1);       % Intensidade dos vórtices
+F21=real(f21)        % Parte real das fontes
+W21=real(w21)        % Parte real dos vórtices
+
+% Para alpha22
+I22=A\b22;
+f22=I22(1:34,1);     %Intensidade das fontes
+w22=I22(35,1);       % Intensidade dos vórtices
+F22=real(f22)        % Parte real das fontes
+W22=real(w22)        % Parte real dos vórtices
+
+% Para alpha23
+I23=A\b23;
+f23=I23(1:34,1);     %Intensidade das fontes
+w23=I23(35,1);       % Intensidade dos vórtices
+F23=real(f23)        % Parte real das fontes
+W23=real(w23)        % Parte real dos vórtices
+
+% Para alpha24
+I24=A\b24;
+f24=I24(1:34,1);     %Intensidade das fontes
+w24=I24(35,1);       % Intensidade dos vórtices
+F24=real(f24)        % Parte real das fontes
+W24=real(w24)        % Parte real dos vórtices
+
+% Para alpha25
+I25=A\b25;
+f25=I25(1:34,1);     %Intensidade das fontes
+w25=I25(35,1);       % Intensidade dos vórtices
+F25=real(f25)        % Parte real das fontes
+W25=real(w25)        % Parte real dos vórtices
+
+% Para alpha26
+I26=A\b26;
+f26=I26(1:34,1);     %Intensidade das fontes
+w26=I26(35,1);       % Intensidade dos vórtices
+F26=real(f26)        % Parte real das fontes
+W26=real(w26)        % Parte real dos vórtices
+
+%__________________________________________________________________________
+
+% 10. VELOCIDADE TANGECIAL 
+
+% 10.1 MATRIZ DE VELOCIDADE DO ESCOAMENRO UNIVEFORME (alpha: -10° à 15°)
+
+%Para alpha1
+u_U1=V*(cos(theta)*cos(alpha1)+sin(theta)*sin(alpha1));
+
+%Para alpha2
+u_U2=V*(cos(theta)*cos(alpha2)+sin(theta)*sin(alpha2));
+
+%Para alpha3
+u_U3=V*(cos(theta)*cos(alpha3)+sin(theta)*sin(alpha3));
+
+%Para alpha4
+u_U4=V*(cos(theta)*cos(alpha4)+sin(theta)*sin(alpha4));
+
+%Para alpha5
+u_U5=V*(cos(theta)*cos(alpha5)+sin(theta)*sin(alpha5));
+
+%Para alpha6
+u_U6=V*(cos(theta)*cos(alpha6)+sin(theta)*sin(alpha6));
+
+%Para alpha7
+u_U7=V*(cos(theta)*cos(alpha7)+sin(theta)*sin(alpha7));
+
+%Para alpha8
+u_U8=V*(cos(theta)*cos(alpha8)+sin(theta)*sin(alpha8));
+
+%Para alpha9
+u_U9=V*(cos(theta)*cos(alpha9)+sin(theta)*sin(alpha9));
+
+%Para alpha10
+u_U10=V*(cos(theta)*cos(alpha10)+sin(theta)*sin(alpha10));
+
+%Para alpha11
+u_U11=V*(cos(theta)*cos(alpha11)+sin(theta)*sin(alpha11));
+
+%Para alpha12
+u_U12=V*(cos(theta)*cos(alpha12)+sin(theta)*sin(alpha12));
+
+%Para alpha13
+u_U13=V*(cos(theta)*cos(alpha13)+sin(theta)*sin(alpha13));
+
+%Para alpha14
+u_U14=V*(cos(theta)*cos(alpha14)+sin(theta)*sin(alpha14));
+
+%Para alpha15
+u_U15=V*(cos(theta)*cos(alpha15)+sin(theta)*sin(alpha15));
+
+%Para alpha16
+u_U16=V*(cos(theta)*cos(alpha16)+sin(theta)*sin(alpha16));
+
+%Para alpha17
+u_U17=V*(cos(theta)*cos(alpha17)+sin(theta)*sin(alpha17));
+
+%Para alpha18
+u_U18=V*(cos(theta)*cos(alpha18)+sin(theta)*sin(alpha18));
+
+%Para alpha19
+u_U19=V*(cos(theta)*cos(alpha19)+sin(theta)*sin(alpha19));
+
+%Para alpha20
+u_U20=V*(cos(theta)*cos(alpha20)+sin(theta)*sin(alpha20));
+
+%Para alpha21
+u_U21=V*(cos(theta)*cos(alpha21)+sin(theta)*sin(alpha21));
+
+%Para alpha22
+u_U22=V*(cos(theta)*cos(alpha22)+sin(theta)*sin(alpha22));
+
+%Para alpha23
+u_U23=V*(cos(theta)*cos(alpha23)+sin(theta)*sin(alpha23));
+
+%Para alpha24
+u_U24=V*(cos(theta)*cos(alpha24)+sin(theta)*sin(alpha24));
+
+%Para alpha25
+u_U25=V*(cos(theta)*cos(alpha25)+sin(theta)*sin(alpha25));
+
+%Para alpha26
+u_U26=V*(cos(theta)*cos(alpha26)+sin(theta)*sin(alpha26));
+
+
+% 10.2 MATRIZ DE COEFICIENTES DE VELOCIDADE DEVIDO AS FONTES
+U_F(1,:)=u_f(1,:)*cos(theta(1,1))+v_f(1,:)*sin(theta(1,1));
+U_F(2,:)=u_f(2,:)*cos(theta(2,1))+v_f(2,:)*sin(theta(2,1));
+U_F(3,:)=u_f(3,:)*cos(theta(3,1))+v_f(3,:)*sin(theta(3,1));
+U_F(4,:)=u_f(4,:)*cos(theta(4,1))+v_f(4,:)*sin(theta(4,1));
+U_F(5,:)=u_f(5,:)*cos(theta(5,1))+v_f(5,:)*sin(theta(5,1));
+U_F(6,:)=u_f(6,:)*cos(theta(6,1))+v_f(6,:)*sin(theta(6,1));
+U_F(7,:)=u_f(7,:)*cos(theta(7,1))+v_f(7,:)*sin(theta(7,1));
+U_F(8,:)=u_f(8,:)*cos(theta(8,1))+v_f(8,:)*sin(theta(8,1));
+U_F(9,:)=u_f(9,:)*cos(theta(9,1))+v_f(9,:)*sin(theta(9,1));
+U_F(10,:)=u_f(10,:)*cos(theta(10,1))+v_f(10,:)*sin(theta(10,1));
+U_F(11,:)=u_f(11,:)*cos(theta(11,1))+v_f(11,:)*sin(theta(11,1));
+U_F(12,:)=u_f(12,:)*cos(theta(12,1))+v_f(12,:)*sin(theta(12,1));
+U_F(13,:)=u_f(13,:)*cos(theta(13,1))+v_f(13,:)*sin(theta(13,1));
+U_F(14,:)=u_f(14,:)*cos(theta(14,1))+v_f(14,:)*sin(theta(14,1));
+U_F(15,:)=u_f(15,:)*cos(theta(15,1))+v_f(15,:)*sin(theta(15,1));
+U_F(16,:)=u_f(16,:)*cos(theta(16,1))+v_f(16,:)*sin(theta(16,1));
+U_F(17,:)=u_f(17,:)*cos(theta(17,1))+v_f(17,:)*sin(theta(17,1));
+U_F(18,:)=u_f(18,:)*cos(theta(18,1))+v_f(18,:)*sin(theta(18,1));
+U_F(19,:)=u_f(19,:)*cos(theta(19,1))+v_f(19,:)*sin(theta(19,1));
+U_F(20,:)=u_f(20,:)*cos(theta(20,1))+v_f(20,:)*sin(theta(20,1));
+U_F(21,:)=u_f(21,:)*cos(theta(21,1))+v_f(21,:)*sin(theta(21,1));
+U_F(22,:)=u_f(22,:)*cos(theta(22,1))+v_f(22,:)*sin(theta(22,1));
+U_F(23,:)=u_f(23,:)*cos(theta(23,1))+v_f(23,:)*sin(theta(23,1));
+U_F(24,:)=u_f(24,:)*cos(theta(24,1))+v_f(24,:)*sin(theta(24,1));
+U_F(25,:)=u_f(25,:)*cos(theta(25,1))+v_f(25,:)*sin(theta(25,1));
+U_F(26,:)=u_f(26,:)*cos(theta(26,1))+v_f(26,:)*sin(theta(26,1));
+U_F(27,:)=u_f(27,:)*cos(theta(27,1))+v_f(27,:)*sin(theta(27,1));
+U_F(28,:)=u_f(28,:)*cos(theta(28,1))+v_f(28,:)*sin(theta(28,1));
+U_F(29,:)=u_f(29,:)*cos(theta(29,1))+v_f(29,:)*sin(theta(29,1));
+U_F(30,:)=u_f(30,:)*cos(theta(30,1))+v_f(30,:)*sin(theta(30,1));
+U_F(31,:)=u_f(31,:)*cos(theta(31,1))+v_f(31,:)*sin(theta(31,1));
+U_F(32,:)=u_f(32,:)*cos(theta(32,1))+v_f(32,:)*sin(theta(32,1));
+U_F(33,:)=u_f(33,:)*cos(theta(33,1))+v_f(33,:)*sin(theta(33,1));
+U_F(34,:)=u_f(34,:)*cos(theta(34,1))+v_f(34,:)*sin(theta(34,1));
+u_F=real(U_F);
+
+% 10.3 MATRIZ DE COEFICIENTES DEVIDO OS VÓRTICES
+U_V(1,1)= sum(u_v(1,:))*cos(theta(1,1))+sum(v_v(1,:))*sin(theta(1,1));
+U_V(2,1)= sum(u_v(2,:))*cos(theta(2,1))+sum(v_v(2,:))*sin(theta(2,1));
+U_V(3,1)= sum(u_v(3,:))*cos(theta(3,1))+sum(v_v(3,:))*sin(theta(3,1));
+U_V(4,1)= sum(u_v(4,:))*cos(theta(4,1))+sum(v_v(4,:))*sin(theta(4,1));
+U_V(5,1)= sum(u_v(5,:))*cos(theta(5,1))+sum(v_v(5,:))*sin(theta(5,1));
+U_V(6,1)= sum(u_v(6,:))*cos(theta(6,1))+sum(v_v(6,:))*sin(theta(6,1));
+U_V(7,1)= sum(u_v(7,:))*cos(theta(7,1))+sum(v_v(7,:))*sin(theta(7,1));
+U_V(8,1)= sum(u_v(8,:))*cos(theta(8,1))+sum(v_v(8,:))*sin(theta(8,1));
+U_V(9,1)= sum(u_v(9,:))*cos(theta(9,1))+sum(v_v(9,:))*sin(theta(9,1));
+U_V(10,1)= sum(u_v(10,:))*cos(theta(10,1))+sum(v_v(10,:))*sin(theta(10,1));
+U_V(11,1)= sum(u_v(11,:))*cos(theta(11,1))+sum(v_v(11,:))*sin(theta(11,1));
+U_V(12,1)= sum(u_v(12,:))*cos(theta(12,1))+sum(v_v(12,:))*sin(theta(12,1));
+U_V(13,1)= sum(u_v(13,:))*cos(theta(13,1))+sum(v_v(13,:))*sin(theta(13,1));
+U_V(14,1)= sum(u_v(14,:))*cos(theta(14,1))+sum(v_v(14,:))*sin(theta(14,1));
+U_V(15,1)= sum(u_v(15,:))*cos(theta(15,1))+sum(v_v(15,:))*sin(theta(15,1));
+U_V(16,1)= sum(u_v(16,:))*cos(theta(16,1))+sum(v_v(16,:))*sin(theta(16,1));
+U_V(17,1)= sum(u_v(17,:))*cos(theta(17,1))+sum(v_v(17,:))*sin(theta(17,1));
+U_V(18,1)= sum(u_v(18,:))*cos(theta(18,1))+sum(v_v(18,:))*sin(theta(18,1));
+U_V(19,1)= sum(u_v(19,:))*cos(theta(19,1))+sum(v_v(19,:))*sin(theta(19,1));
+U_V(20,1)= sum(u_v(20,:))*cos(theta(20,1))+sum(v_v(20,:))*sin(theta(20,1));
+U_V(21,1)= sum(u_v(21,:))*cos(theta(21,1))+sum(v_v(21,:))*sin(theta(21,1));
+U_V(22,1)= sum(u_v(22,:))*cos(theta(22,1))+sum(v_v(22,:))*sin(theta(22,1));
+U_V(23,1)= sum(u_v(23,:))*cos(theta(23,1))+sum(v_v(23,:))*sin(theta(23,1));
+U_V(24,1)= sum(u_v(24,:))*cos(theta(24,1))+sum(v_v(24,:))*sin(theta(24,1));
+U_V(25,1)= sum(u_v(25,:))*cos(theta(25,1))+sum(v_v(25,:))*sin(theta(25,1));
+U_V(26,1)= sum(u_v(26,:))*cos(theta(26,1))+sum(v_v(26,:))*sin(theta(26,1));
+U_V(27,1)= sum(u_v(27,:))*cos(theta(27,1))+sum(v_v(27,:))*sin(theta(27,1));
+U_V(28,1)= sum(u_v(28,:))*cos(theta(28,1))+sum(v_v(28,:))*sin(theta(28,1));
+U_V(29,1)= sum(u_v(29,:))*cos(theta(29,1))+sum(v_v(29,:))*sin(theta(29,1));
+U_V(30,1)= sum(u_v(30,:))*cos(theta(30,1))+sum(v_v(30,:))*sin(theta(30,1));
+U_V(31,1)= sum(u_v(31,:))*cos(theta(31,1))+sum(v_v(31,:))*sin(theta(31,1));
+U_V(32,1)= sum(u_v(32,:))*cos(theta(32,1))+sum(v_v(32,:))*sin(theta(32,1));
+U_V(33,1)= sum(u_v(33,:))*cos(theta(33,1))+sum(v_v(33,:))*sin(theta(33,1));
+U_V(34,1)= sum(u_v(34,:))*cos(theta(34,1))+sum(v_v(34,:))*sin(theta(34,1));
+u_V=real(U_V);
+
+% 10.4 VELOCIDADE TOTAL EM CADA PAINEL (alpha: -10° à 15°)
+
+%Para alpha1
+U_t1 = u_U1 + (u_F*F1) + (W1*u_V);
+
+%Para alpha2
+U_t2 = u_U2 + (u_F*F2) + (W2*u_V);
+
+%Para alpha3
+U_t3 = u_U3 + (u_F*F3) + (W3*u_V);
+
+%Para alpha4
+U_t4 = u_U4 + (u_F*F4) + (W4*u_V);
+
+%Para alpha5
+U_t5 = u_U5 + (u_F*F5) + (W5*u_V);
+
+%Para alpha6
+U_t6 = u_U6 + (u_F*F6) + (W6*u_V);
+
+%Para alpha7
+U_t7 = u_U7 + (u_F*F7) + (W7*u_V);
+
+%Para alpha8
+U_t8 = u_U8 + (u_F*F8) + (W8*u_V);
+
+%Para alpha9
+U_t9 = u_U9 + (u_F*F9) + (W9*u_V);
+
+%Para alpha10
+U_t10 = u_U10 + (u_F*F10) + (W10*u_V);
+
+%Para alpha11
+U_t11 = u_U11 + (u_F*F11) + (W11*u_V);
+
+%Para alpha12
+U_t12 = u_U12 + (u_F*F12) + (W12*u_V);
+
+%Para alpha13
+U_t13 = u_U13 + (u_F*F13) + (W13*u_V);
+
+%Para alpha14
+U_t14 = u_U14 + (u_F*F14) + (W14*u_V);
+
+%Para alpha15
+U_t15 = u_U15 + (u_F*F15) + (W15*u_V);
+
+%Para alpha16
+U_t16 = u_U16 + (u_F*F16) + (W16*u_V);
+
+%Para alpha17
+U_t17 = u_U17 + (u_F*F17) + (W17*u_V);
+
+%Para alpha18
+U_t18 = u_U18 + (u_F*F18) + (W18*u_V);
+
+%Para alpha19
+U_t19 = u_U19 + (u_F*F19) + (W19*u_V);
+
+%Para alpha20
+U_t20 = u_U20 + (u_F*F20) + (W20*u_V);
+
+%Para alpha21
+U_t21 = u_U21 + (u_F*F21) + (W21*u_V);
+
+%Para alpha22
+U_t22 = u_U22 + (u_F*F22) + (W22*u_V);
+
+%Para alpha23
+U_t23 = u_U23 + (u_F*F23) + (W23*u_V);
+
+%Para alpha24
+U_t24 = u_U24 + (u_F*F24) + (W24*u_V);
+
+%Para alpha25
+U_t25 = u_U25 + (u_F*F25) + (W25*u_V);
+
+%Para alpha26
+U_t26 = u_U26 + (u_F*F26) + (W26*u_V);
+
+
+%__________________________________________________________________________
+
+% 11. COEFICIENTE DE PRESSÃO (aplha: -10° à 15°)
+
+% 11.1 COOERDENADAS DOS PONTOS DE CONTROTE PARA GRÁFICOS DO C_p
+X_cin=X_c(1:17,1);      % Coordenadas x dos pontos de controle do intradorso
+X_cex=X_c(17:34,1);     % Coordenadas x dos pontos de controle do extradorso
+
+% 11.2 cOEFICIENTE DE PRESSÃO (alpha: -10° à 15°)
+% Para alpha1
+C_p1=1-((U_t1./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in1=C_p1(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex1=C_p1(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha2
+C_p2=1-((U_t2./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in2=C_p2(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex2=C_p2(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha3
+C_p3=1-((U_t3./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in3=C_p3(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex3=C_p3(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha4
+C_p4=1-((U_t4./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in4=C_p4(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex4=C_p4(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha5
+C_p5=1-((U_t5./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in5=C_p5(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex5=C_p5(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha6
+C_p6=1-((U_t6./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in6=C_p6(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex6=C_p6(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha7
+C_p7=1-((U_t7./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in7=C_p7(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex7=C_p7(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha8
+C_p8=1-((U_t8./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in8=C_p8(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex8=C_p8(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha9
+C_p9=1-((U_t9./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in9=C_p9(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex9=C_p9(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha10
+C_p10=1-((U_t10./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in10=C_p10(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex10=C_p10(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha11
+C_p11=1-((U_t11./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in11=C_p11(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex11=C_p11(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha12
+C_p12=1-((U_t12./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in12=C_p12(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex12=C_p12(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha13
+C_p13=1-((U_t13./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in13=C_p13(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex13=C_p13(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha14
+C_p14=1-((U_t14./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in14=C_p14(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex14=C_p14(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha15
+C_p15=1-((U_t15./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in15=C_p15(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex15=C_p15(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha16
+C_p16=1-((U_t16./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in16=C_p16(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex16=C_p16(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha17
+C_p17=1-((U_t17./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in17=C_p17(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex17=C_p17(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha18
+C_p18=1-((U_t18./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in18=C_p18(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex18=C_p18(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha19
+C_p19=1-((U_t19./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in19=C_p19(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex19=C_p19(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha20
+C_p20=1-((U_t20./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in20=C_p20(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex20=C_p20(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha21
+C_p21=1-((U_t21./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in21=C_p21(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex21=C_p21(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha22
+C_p22=1-((U_t22./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in22=C_p22(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex22=C_p22(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha23
+C_p23=1-((U_t23./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in23=C_p23(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex23=C_p23(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha24
+C_p24=1-((U_t24./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in24=C_p24(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex24=C_p24(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha25
+C_p25=1-((U_t25./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in25=C_p25(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex25=C_p25(17:34,1);     % Coeficiente de pressão no extradorso
+
+% Para alpha26
+C_p26=1-((U_t26./V).^2)     % Coeficiente de pressão (Adimensional)
+Cp_in26=C_p26(1:17,1);      % Coeficiente de pressão no intradorso
+Cp_ex26=C_p26(17:34,1);     % Coeficiente de pressão no extradorso
+%__________________________________________________________________________
+
+% 12. COEFICIENTES AERODINÂMICOS (alpha: -10° à 15°)
+
+% 12.1 COEFICIENTE C_x e C_y 
+
+% Para alpha1
+C_y(1,1)=-sum(C_p1.*((X_i1-X_i)/P(1,1)));  
+C_x(1,1)=sum(C_p1.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha2
+C_y(1,2)=-sum(C_p2.*((X_i1-X_i)/P(1,1)));  
+C_x(1,2)=sum(C_p2.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha3
+C_y(1,3)=-sum(C_p3.*((X_i1-X_i)/P(1,1)));  
+C_x(1,3)=sum(C_p3.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha4
+C_y(1,4)=-sum(C_p4.*((X_i1-X_i)/P(1,1)));  
+C_x(1,4)=sum(C_p4.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha5
+C_y(1,5)=-sum(C_p5.*((X_i1-X_i)/P(1,1)));  
+C_x(1,5)=sum(C_p5.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha6
+C_y(1,6)=-sum(C_p6.*((X_i1-X_i)/P(1,1)));  
+C_x(1,6)=sum(C_p6.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha7
+C_y(1,7)=-sum(C_p7.*((X_i1-X_i)/P(1,1)));  
+C_x(1,7)=sum(C_p7.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha8
+C_y(1,8)=-sum(C_p8.*((X_i1-X_i)/P(1,1)));  
+C_x(1,8)=sum(C_p8.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha9
+C_y(1,9)=-sum(C_p9.*((X_i1-X_i)/P(1,1)));  
+C_x(1,9)=sum(C_p9.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha10
+C_y(1,10)=-sum(C_p10.*((X_i1-X_i)/P(1,1)));  
+C_x(1,10)=sum(C_p10.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha11
+C_y(1,11)=-sum(C_p11.*((X_i1-X_i)/P(1,1)));  
+C_x(1,11)=sum(C_p11.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha12
+C_y(1,12)=-sum(C_p12.*((X_i1-X_i)/P(1,1)));  
+C_x(1,12)=sum(C_p12.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha13
+C_y(1,13)=-sum(C_p13.*((X_i1-X_i)/P(1,1)));  
+C_x(1,13)=sum(C_p13.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha14
+C_y(1,14)=-sum(C_p14.*((X_i1-X_i)/P(1,1)));  
+C_x(1,14)=sum(C_p14.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha15
+C_y(1,15)=-sum(C_p15.*((X_i1-X_i)/P(1,1)));  
+C_x(1,15)=sum(C_p15.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha16
+C_y(1,16)=-sum(C_p16.*((X_i1-X_i)/P(1,1)));  
+C_x(1,16)=sum(C_p16.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha17
+C_y(1,17)=-sum(C_p17.*((X_i1-X_i)/P(1,1)));  
+C_x(1,17)=sum(C_p17.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha18
+C_y(1,18)=-sum(C_p18.*((X_i1-X_i)/P(1,1)));  
+C_x(1,18)=sum(C_p18.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha19
+C_y(1,19)=-sum(C_p19.*((X_i1-X_i)/P(1,1)));  
+C_x(1,19)=sum(C_p19.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha20
+C_y(1,20)=-sum(C_p20.*((X_i1-X_i)/P(1,1)));  
+C_x(1,20)=sum(C_p20.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha21
+C_y(1,21)=-sum(C_p21.*((X_i1-X_i)/P(1,1)));  
+C_x(1,21)=sum(C_p21.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha22
+C_y(1,22)=-sum(C_p22.*((X_i1-X_i)/P(1,1)));  
+C_x(1,22)=sum(C_p22.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha23
+C_y(1,23)=-sum(C_p23.*((X_i1-X_i)/P(1,1)));  
+C_x(1,23)=sum(C_p23.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha24
+C_y(1,24)=-sum(C_p24.*((X_i1-X_i)/P(1,1)));  
+C_x(1,24)=sum(C_p24.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha25
+C_y(1,25)=-sum(C_p25.*((X_i1-X_i)/P(1,1)));  
+C_x(1,25)=sum(C_p25.*((Y_i1-Y_i)/P(1,1)));
+
+% Para alpha26
+C_y(1,26)=-sum(C_p26.*((X_i1-X_i)/P(1,1)));  
+C_x(1,26)=sum(C_p26.*((Y_i1-Y_i)/P(1,1)));
+
+
+% 12.2 COEFICIENTE DE SUSTENTAÇÃO
+C_l=C_y.*cos(alpha)-C_x.*sin(alpha)
+
+% 12.3 COEFICIENTE DE ARRASTO
+C_d=C_x.*cos(alpha)+C_y.*sin(alpha)
+
+
+% 12.4 COEFICIENTES C_mx e C_my (Alpha: -10° à 15°) (alpha: -10° à 15°)
+
+% alpha1
+C_mx(1,1)=sum((C_p1.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(1,1)=sum((C_p1.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha2
+C_mx(2,1)=sum((C_p2.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(2,1)=sum((C_p2.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha3
+C_mx(3,1)=sum((C_p3.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(3,1)=sum((C_p3.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha4
+C_mx(4,1)=sum((C_p4.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(4,1)=sum((C_p4.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha5
+C_mx(5,1)=sum((C_p5.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(5,1)=sum((C_p5.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha6
+C_mx(6,1)=sum((C_p6.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(6,1)=sum((C_p6.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha7
+C_mx(7,1)=sum((C_p7.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(7,1)=sum((C_p7.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha8
+C_mx(8,1)=sum((C_p8.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(8,1)=sum((C_p8.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha9
+C_mx(9,1)=sum((C_p9.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(9,1)=sum((C_p9.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha10
+C_mx(10,1)=sum((C_p10.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(10,1)=sum((C_p10.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha11
+C_mx(11,1)=sum((C_p11.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(11,1)=sum((C_p11.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha12
+C_mx(12,1)=sum((C_p12.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(12,1)=sum((C_p12.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha13
+C_mx(13,1)=sum((C_p13.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(13,1)=sum((C_p13.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha14
+C_mx(14,1)=sum((C_p14.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(14,1)=sum((C_p14.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha15
+C_mx(15,1)=sum((C_p15.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(15,1)=sum((C_p15.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha16
+C_mx(16,1)=sum((C_p16.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(16,1)=sum((C_p16.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha17
+C_mx(17,1)=sum((C_p17.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(17,1)=sum((C_p17.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha18
+C_mx(18,1)=sum((C_p18.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(18,1)=sum((C_p18.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha19
+C_mx(19,1)=sum((C_p19.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(19,1)=sum((C_p19.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha20
+C_mx(20,1)=sum((C_p20.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(20,1)=sum((C_p20.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha21
+C_mx(21,1)=sum((C_p21.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(21,1)=sum((C_p21.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha22
+C_mx(22,1)=sum((C_p22.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(22,1)=sum((C_p22.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha23
+C_mx(23,1)=sum((C_p23.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(23,1)=sum((C_p23.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha24
+C_mx(24,1)=sum((C_p24.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(24,1)=sum((C_p24.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha25
+C_mx(25,1)=sum((C_p25.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(25,1)=sum((C_p25.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% alpha26
+C_mx(26,1)=sum((C_p26.*((Y_i1-Y_i)/P(1,1))).*Y_i);
+C_my(26,1)=sum((C_p26.*((X_i1-X_i)/P(1,1))).*(X_i-.5));
+
+% 12.5 COEFICIENTE DE MOMENTO
+C_m= C_mx + C_my
+
+
+% 2.6 RAZÃO C_l/C_d
+L_D=C_l./C_d
+
+
+%__________________________________________________________________________
+
+% 13. GRÁFICOS
+
+% 13. 1 GRÁFICO DO COEFICIENTE DE PRESSÃO: alpha: -10°à 15°
+
+%alpha1
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in1,'r','linewidth',2);hold on; plot(X_cex,Cp_ex1,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -10°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha2
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in2,'r','linewidth',2);hold on; plot(X_cex,Cp_ex2,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -9°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha3
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in3,'r','linewidth',2);hold on; plot(X_cex,Cp_ex3,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -8°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha4
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in4,'r','linewidth',2);hold on; plot(X_cex,Cp_ex4,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -7°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha5
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in5,'r','linewidth',2);hold on; plot(X_cex,Cp_ex5,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -6°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha6
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in6,'r','linewidth',2);hold on; plot(X_cex,Cp_ex6,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -5°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha7
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in7,'r','linewidth',2);hold on; plot(X_cex,Cp_ex7,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -4°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha8
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in8,'r','linewidth',2);hold on; plot(X_cex,Cp_ex8,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -3°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha9
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in9,'r','linewidth',2);hold on; plot(X_cex,Cp_ex9,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -2°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha10
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in10,'r','linewidth',2);hold on; plot(X_cex,Cp_ex10,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = -1°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha11
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in11,'r','linewidth',2);hold on; plot(X_cex,Cp_ex11,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 0°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha12
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in12,'r','linewidth',2);hold on; plot(X_cex,Cp_ex12,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 1°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha13
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in13,'r','linewidth',2);hold on; plot(X_cex,Cp_ex13,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 2°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha14
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in14,'r','linewidth',2);hold on; plot(X_cex,Cp_ex14,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 3°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha15
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in15,'r','linewidth',2);hold on; plot(X_cex,Cp_ex15,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 4°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha16
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in16,'r','linewidth',2);hold on; plot(X_cex,Cp_ex16,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 5°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha17
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in17,'r','linewidth',2);hold on; plot(X_cex,Cp_ex17,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 6°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha18
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in18,'r','linewidth',2);hold on; plot(X_cex,Cp_ex18,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 7°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha19
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in19,'r','linewidth',2);hold on; plot(X_cex,Cp_ex19,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 8°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha20
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in20,'r','linewidth',2);hold on; plot(X_cex,Cp_ex20,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 9°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha21
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in21,'r','linewidth',2);hold on; plot(X_cex,Cp_ex21,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 10°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha22
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in22,'r','linewidth',2);hold on; plot(X_cex,Cp_ex22,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 11°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha23
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in23,'r','linewidth',2);hold on; plot(X_cex,Cp_ex23,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 12°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha24
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in24,'r','linewidth',2);hold on; plot(X_cex,Cp_ex24,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 13°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha25
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in25,'r','linewidth',2);hold on; plot(X_cex,Cp_ex25,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 14°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+%alpha26
+figure;plot(X_c,Y_c,'b','linewidth',2);hold on; plot(X_cin,Cp_in26,'r','linewidth',2);hold on; plot(X_cex,Cp_ex26,'b','linewidth',2), grid
+title('Coeficiente de Pressão (ângulo de ataque = 15°)')
+xlabel('% corda')
+ylabel('Coeficiente de pressão')
+
+
+% 13.2 GRÁFICO DO COEFICIENTE DE SUSTENTAÇÃO
+figure;plot(a,C_l,'b','linewidth',2), grid
+title('Coeficiente de sustentação ')
+xlabel('Ângulo de ataque (graus)')
+ylabel('Coeficiente de sustentação')
+
+% 13.3 GRÁFICO DO COEFICIENTE DE ARRASTO
+figure;plot(a,C_d,'b','linewidth',2), grid
+title('Coeficiente de arrasto ')
+xlabel('Ângulo de ataque (graus)')
+ylabel('Coeficiente de arrasto')
+
+% 13.4 GRÁFICO DO COEFICIENTE DE MOMENTO
+figure;plot(a,C_m,'b','linewidth',2), grid
+title('Coeficiente de Momento ')
+xlabel('Ângulo de ataque (graus)')
+ylabel('Coeficiente de Momento')
+
+% 13.5 GRÁFICO DA RAZÃO C_l/C_d
+figure;plot(a,L_D,'b','linewidth',2), grid
+title('Razão Cl/Cd')
+xlabel('Ângulo de ataque (graus)')
+
+ylabel('azão Cl/Cd')
+
+
+
+
